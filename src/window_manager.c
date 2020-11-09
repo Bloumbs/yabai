@@ -209,6 +209,10 @@ void window_manager_set_window_border_enabled(struct window_manager *wm, bool en
     if (window) border_activate(window);
 }
 
+void window_manager_set_window_border_randomize_enabled(struct window_manager *wm, bool enabled) {
+    wm->enable_window_border_randomize = enabled;
+}
+
 void window_manager_set_window_border_width(struct window_manager *wm, int width)
 {
     wm->border_width = width;
@@ -231,6 +235,21 @@ void window_manager_set_window_border_width(struct window_manager *wm, int width
 void window_manager_set_active_window_border_color(struct window_manager *wm, uint32_t color)
 {
     wm->active_border_color = rgba_color_from_hex(color);
+    wm->active_border_color_copy = wm->active_border_color;
+    struct window *window = window_manager_focused_window(wm);
+    if (window) border_activate(window);
+}
+
+void window_manager_reset_active_window_border_color(struct window_manager *wm)
+{
+    wm->active_border_color = wm->active_border_color_copy;
+    struct window *window = window_manager_focused_window(wm);
+    if (window) border_activate(window);
+}
+
+void window_manager_set_active_window_border_color_random(struct window_manager *wm)
+{
+    wm->active_border_color = rgba_color_from_hex(DefaultBorderColors[rand() % 8]);
     struct window *window = window_manager_focused_window(wm);
     if (window) border_activate(window);
 }
@@ -1443,6 +1462,19 @@ void window_manager_toggle_window_border(struct window_manager *wm, struct windo
     }
 }
 
+void window_manager_toggle_window_border_randomize(struct window_manager *wm)
+{
+    if (wm->enable_window_border) {
+        if (wm->enable_window_border_randomize) {
+            window_manager_reset_active_window_border_color(wm);
+        } else {
+            window_manager_set_active_window_border_color_random(wm);
+        }
+
+        wm->enable_window_border_randomize = !wm->enable_window_border_randomize;
+    }
+}
+
 static void window_manager_validate_windows_on_space(struct space_manager *sm, struct window_manager *wm, uint64_t sid, uint32_t *window_list, int window_count)
 {
     struct view *view = space_manager_find_view(sm, sid);
@@ -1542,6 +1574,7 @@ void window_manager_init(struct window_manager *wm)
     wm->purify_mode = PURIFY_DISABLED;
     wm->enable_mff = false;
     wm->enable_window_border = false;
+    wm->enable_window_border_randomize = false;
     wm->enable_window_opacity = false;
     wm->enable_window_topmost = false;
     wm->active_window_opacity = 1.0f;
@@ -1550,6 +1583,7 @@ void window_manager_init(struct window_manager *wm)
     wm->insert_feedback_windows = NULL;
     wm->insert_feedback_color = rgba_color_from_hex(0xffd75f5f);
     wm->active_border_color = rgba_color_from_hex(0xff775759);
+    wm->active_border_color_copy = rgba_color_from_hex(0xff775759);
     wm->normal_border_color = rgba_color_from_hex(0xff555555);
     wm->border_width = 6;
 

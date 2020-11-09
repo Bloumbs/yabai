@@ -22,6 +22,8 @@ extern CGError SLSGetCurrentCursorLocation(int cid, CGPoint *point);
 #define kCPSUserGenerated 0x200
 #define kCPSNoWindows     0x400
 
+static int DefaultBorderColors[8] = { 0xffff0000, 0xffff6e00, 0xfffedd43, 0xff37f007, 0xff00a9ff, 0xfff000ff, 0xff9e00ff, 0xffffffff };
+
 enum window_op_error
 {
     WINDOW_OP_ERROR_SUCCESS,
@@ -83,6 +85,7 @@ struct window_manager
     enum ffm_mode ffm_mode;
     enum purify_mode purify_mode;
     bool enable_window_border;
+    bool enable_window_border_randomize;
     bool enable_window_opacity;
     bool enable_window_topmost;
     float active_window_opacity;
@@ -92,6 +95,7 @@ struct window_manager
     int border_width;
     struct rgba_color insert_feedback_color;
     struct rgba_color active_border_color;
+    struct rgba_color active_border_color_copy;
     struct rgba_color normal_border_color;
 };
 
@@ -154,8 +158,11 @@ void window_manager_set_window_opacity_enabled(struct window_manager *wm, bool e
 void window_manager_set_opacity(struct window_manager *wm, struct window *window, float opacity);
 void window_manager_set_window_opacity(struct window_manager *wm, struct window *window, float opacity);
 void window_manager_set_window_border_enabled(struct window_manager *wm, bool enabled);
+void window_manager_set_window_border_randomize_enabled(struct window_manager *wm, bool enabled);
 void window_manager_set_window_border_width(struct window_manager *wm, int width);
+void window_manager_reset_active_window_border_color(struct window_manager *wm);
 void window_manager_set_active_window_border_color(struct window_manager *wm, uint32_t color);
+void window_manager_set_active_window_border_color_random(struct window_manager *wm);
 void window_manager_set_normal_window_border_color(struct window_manager *wm, uint32_t color);
 enum window_op_error window_manager_set_window_insertion(struct space_manager *sm, struct window_manager *wm, struct window *window, int direction);
 enum window_op_error window_manager_stack_window(struct space_manager *sm, struct window_manager *wm, struct window *a, struct window *b);
@@ -181,6 +188,7 @@ void window_manager_toggle_window_native_fullscreen(struct space_manager *sm, st
 void window_manager_toggle_window_expose(struct window_manager *wm, struct window *window);
 void window_manager_toggle_window_pip(struct space_manager *sm, struct window_manager *wm, struct window *window);
 void window_manager_toggle_window_border(struct window_manager *wm, struct window *window);
+void window_manager_toggle_window_border_randomize(struct window_manager *wm);
 void window_manager_validate_and_check_for_windows_on_space(struct space_manager *sm, struct window_manager *wm, uint64_t sid);
 void window_manager_handle_display_add_and_remove(struct space_manager *sm, struct window_manager *wm, uint32_t did);
 void window_manager_begin(struct space_manager *sm, struct window_manager *window_manager);

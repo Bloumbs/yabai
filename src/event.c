@@ -1,4 +1,5 @@
 #include "event.h"
+#include "window_manager.h"
 
 extern struct event_loop g_event_loop;
 extern struct process_manager g_process_manager;
@@ -16,6 +17,10 @@ static void window_did_receive_focus(struct window_manager *wm, struct mouse_sta
     border_activate(window);
 
     if (wm->focused_window_id != window->id) {
+        if (wm->enable_window_border_randomize) {
+            window_manager_set_active_window_border_color_random(&g_window_manager);
+        }
+
         if (ms->ffm_window_id != window->id) {
             window_manager_center_mouse(wm, window);
         }
