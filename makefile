@@ -11,10 +11,11 @@ OSAX_SRC       = ./src/osax/sa_loader.c ./src/osax/sa_payload.c ./src/osax/sa_ma
 YABAI_SRC      = ./src/manifest.m $(OSAX_SRC)
 OSAX_PATH      = ./src/osax
 BINS           = $(BUILD_PATH)/yabai
+BIN_PATH	   = /usr/local/bin/yabai
 
 .PHONY: all clean install sign archive man
 
-all: clean-build $(BINS)
+all: clean-build $(BINS) copy-bin
 
 install: BUILD_FLAGS=-std=c99 -Wall -DNDEBUG -O2 -fvisibility=hidden -mmacosx-version-min=10.13
 install: clean-build $(BINS)
@@ -57,3 +58,6 @@ clean: clean-build
 $(BUILD_PATH)/yabai: $(YABAI_SRC)
 	mkdir -p $(BUILD_PATH)
 	clang $^ $(BUILD_FLAGS) $(FRAMEWORK_PATH) $(FRAMEWORK) -o $@
+
+copy-bin:
+	cp $(BINS) $(BIN_PATH)
