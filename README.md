@@ -72,7 +72,7 @@ You acknowledge that you understand the potential risk that may come from disabl
 
 ## New stuff
 
-##### Random active border color
+#### Random active border color
 
 - Instead of using the default active border color, or the color defined in the `.yabairc` with `yabai -m config active_window_border_color`, the windows active border color will cycle randomly through the eight currently available colors on every new window focus.
 - At some point I want the option of `yabai -m config active_window_border_colors_list` to cycle through a list of custom colors, but it's currently not there.
@@ -98,7 +98,7 @@ yabai -m config window_border_randomize     on                 # on or off (defa
 ctrl + shift - r : yabai -m window --toggle border_randomize   # toggle on or off
 ```
 
-##### Show window state
+#### Show window state
 
 - Instead of the active border color being used for all focused windows, this option shows a specific color for the extra states of a focused window (float, sticky or zoomed).
 
@@ -120,7 +120,7 @@ yabai -m config zoom_window_border_color     0xffff0000          # zoom window s
 ctrl + shift - s : yabai -m window --toggle  border_show_state   # toggle on or off
 ```
 
-##### Floating/tiled border only
+#### Floating/tiled border only
 
 - This option styles windows borders based on the set config options `yabai -m config window_border_tiled_only` or `yabai -m config window_border_float_only`. The windows not being affected by border styling will look like OS default.
 
