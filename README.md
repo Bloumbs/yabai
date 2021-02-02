@@ -70,6 +70,75 @@ Use at your own discretion.
 I take no responsibility if anything should happen to your machine while trying to install, test or otherwise use this software in any form.
 You acknowledge that you understand the potential risk that may come from disabling [&nearr;&nbsp;System&nbsp;Integrity&nbsp;Protection][external-about-sip] on your system, and I make no recommendation as to whether you should or should not disable System Integrity Protection.
 
+## New stuff
+
+##### Random active border color
+
+- Instead of using the default active border color, or the color defined in the `.yabairc` with `yabai -m config active_window_border_color`, the windows active border color will cycle randomly through the eight currently available colors on every new window focus.
+- At some point I want the option of `yabai -m config active_window_border_colors_list` to cycle through a list of custom colors, but it's currently not there.
+
+```
+# Currently cycled default colors:
+
+# Red:    0xffff0000
+# Orange: 0xffff6e00
+# Yellow: 0xfffedd43
+# Green:  0xff37f007
+# Blue:   0xff00a9ff
+# Pink:   0xfff000ff
+# Purple: 0xff9e00ff
+# White:  0xffffffff
+```
+
+```
+# .yabairc
+yabai -m config window_border_randomize     on                 # on or off (default: off)
+
+# .skhdrc
+ctrl + shift - r : yabai -m window --toggle border_randomize   # toggle on or off
+```
+
+##### Show window state
+
+- Instead of the active border color being used for all focused windows, this option shows a specific color for the extra states of a focused window (float, sticky or zoomed).
+
+- Normal active focused windows use the default `active_border_color` (0xff775759), or the color defined with `yabai -m config active_window_border_color` in the `.yabairc`.
+
+- If this and the 'Random active border color' options are both enabled, this option will override the random border color and just show the appropriate window state border color.
+
+- [This issue][window-state-issue]
+
+```
+# .yabairc
+yabai -m config window_border_show_state     on                  # on or off (default: off)
+
+yabai -m config float_window_border_color    0xfffedd43          # float window state color (default: 0xff597757)
+yabai -m config sticky_window_border_color   0xffff6e00          # sticky window state color (default: 0xff575977)
+yabai -m config zoom_window_border_color     0xffff0000          # zoom window state color (default: 0xff737757)
+
+# .skhdrc
+ctrl + shift - s : yabai -m window --toggle  border_show_state   # toggle on or off
+```
+
+##### Floating/tiled border only
+
+- This option styles windows borders based on the set config options `yabai -m config window_border_tiled_only` or `yabai -m config window_border_float_only`. The windows not being affected by border styling will look like OS default.
+
+- If both `window_border_tiled_only` and `window_border_float_only` are set to `on`, both will be negated and borders will appear on all windows as normal.
+
+- [This comment](https://github.com/koekeishiya/yabai/issues/663#issuecomment-749329315)
+
+```
+# .yabairc
+yabai -m config window_border_tiled_only     on                  # on or off (default: off)
+yabai -m config window_border_float_only     off                 # on or off (default: off)
+
+# .skhdrc
+ctrl + shift - t : yabai -m window --toggle  border_tiled_only   # toggle on or off
+ctrl + shift - f : yabai -m window --toggle  border_float_only   # toggle on or off
+```
+
+
 <!-- Project internal links -->
 [yabai-license]: LICENSE.txt
 [yabai-examples]: https://github.com/koekeishiya/yabai/tree/master/examples
@@ -84,3 +153,5 @@ You acknowledge that you understand the potential risk that may come from disabl
 
 <!-- External links -->
 [external-about-sip]: https://support.apple.com/en-us/HT204899
+[window-state-issue]: https://github.com/koekeishiya/yabai/issues/663
+[yabai-repo]: https://github.com/koekeishiya/yabai
