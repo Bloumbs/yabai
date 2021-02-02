@@ -209,8 +209,24 @@ void window_manager_set_window_border_enabled(struct window_manager *wm, bool en
     if (window) border_activate(window);
 }
 
-void window_manager_set_window_border_randomize_enabled(struct window_manager *wm, bool enabled) {
+void window_manager_set_window_border_randomize_enabled(struct window_manager *wm, bool enabled)
+{
     wm->enable_window_border_randomize = enabled;
+}
+
+void window_manager_set_window_border_show_state_enabled(struct window_manager *wm, bool enabled)
+{
+    wm->enable_window_border_show_state = enabled;
+}
+
+void window_manager_set_window_border_tiled_only_enabled(struct window_manager *wm, bool enabled)
+{
+    wm->enable_window_border_tiled_only = enabled;
+}
+
+void window_manager_set_window_border_float_only_enabled(struct window_manager *wm, bool enabled)
+{
+    wm->enable_window_border_float_only = enabled;
 }
 
 void window_manager_set_window_border_width(struct window_manager *wm, int width)
@@ -237,21 +253,113 @@ void window_manager_set_active_window_border_color(struct window_manager *wm, ui
     wm->active_border_color = rgba_color_from_hex(color);
     wm->active_border_color_copy = wm->active_border_color;
     struct window *window = window_manager_focused_window(wm);
-    if (window) border_activate(window);
+    if (window) window_manager_check_border_style_config(wm, window, true);
 }
 
 void window_manager_reset_active_window_border_color(struct window_manager *wm)
 {
     wm->active_border_color = wm->active_border_color_copy;
-    struct window *window = window_manager_focused_window(wm);
-    if (window) border_activate(window);
 }
 
 void window_manager_set_active_window_border_color_random(struct window_manager *wm)
 {
     wm->active_border_color = rgba_color_from_hex(DefaultBorderColors[rand() % 8]);
-    struct window *window = window_manager_focused_window(wm);
-    if (window) border_activate(window);
+}
+
+void window_manager_set_float_window_border_color(struct window_manager *wm, uint32_t color)
+{
+    wm->float_border_color = rgba_color_from_hex(color);
+}
+
+void window_manager_set_float_window_border_color_active(struct window_manager *wm)
+{
+    wm->active_border_color = wm->float_border_color;
+}
+
+void window_manager_set_sticky_window_border_color(struct window_manager *wm, uint32_t color)
+{
+    wm->sticky_border_color = rgba_color_from_hex(color);
+}
+
+void window_manager_set_sticky_window_border_color_active(struct window_manager *wm)
+{
+    wm->active_border_color = wm->sticky_border_color;
+}
+
+void window_manager_set_zoom_window_border_color(struct window_manager *wm, uint32_t color)
+{
+    wm->zoom_border_color = rgba_color_from_hex(color);
+}
+
+void window_manager_set_zoom_window_border_color_active(struct window_manager *wm)
+{
+    wm->active_border_color = wm->zoom_border_color;
+}
+
+void window_manager_check_active_window_border_config(struct window_manager *wm, struct window *window)
+{
+    if (wm->enable_window_border) {
+        if (wm->enable_window_border_randomize) {
+            window_manager_set_active_window_border_color_random(wm);
+        }
+
+        if (wm->enable_window_border_show_state) {
+            if (!window->is_floating && !window->is_sticky){
+                window_manager_reset_active_window_border_color(wm);
+            }
+            if (window->is_floating) {
+                window_manager_set_float_window_border_color_active(wm);
+            }
+            if (window->is_sticky) {
+                window_manager_set_sticky_window_border_color_active(wm);
+            }
+        }
+        
+        if (!wm->enable_window_border_show_state && !wm->enable_window_border_randomize) {
+            window_manager_reset_active_window_border_color(wm);
+        }
+    }
+
+    window_manager_check_border_style_config(wm, window, true);
+}
+
+void window_manager_check_border_style_config(struct window_manager *wm, struct window *window, bool active_window)
+{
+    if ((wm->enable_window_border_tiled_only && wm->enable_window_border_float_only) || (!wm->enable_window_border_tiled_only && !wm->enable_window_border_float_only)) {
+        if (!window->border.id) {
+            border_create(window);
+        }
+    } else {
+        if (wm->enable_window_border_tiled_only) {
+            if (window->is_floating) {
+                if (window->border.id) {
+                    border_destroy(window);
+                }
+            } else {
+                if (!window->border.id) {
+                    border_create(window);
+                }
+            }
+        }
+
+        if (wm->enable_window_border_float_only) {
+            if (!window->is_floating) {
+                if (window->border.id) {
+                    border_destroy(window);
+                }
+            } else {
+                if (!window->border.id) {
+                    border_create(window);
+                }
+            }
+        }
+    }
+
+    if (active_window) {
+        border_activate(window);
+    } else {
+        border_deactivate(window);
+    }
 }
 
 void window_manager_set_normal_window_border_color(struct window_manager *wm, uint32_t color)
@@ -263,7 +371,7 @@ void window_manager_set_normal_window_border_color(struct window_manager *wm, ui
             if (bucket->value) {
                 struct window *window = bucket->value;
                 if (window->id != wm->focused_window_id) {
-                    border_deactivate(window);
+                    window_manager_check_border_style_config(wm, window, false);
                 }
             }
 
@@ -1462,16 +1570,38 @@ void window_manager_toggle_window_border(struct window_manager *wm, struct windo
     }
 }
 
-void window_manager_toggle_window_border_randomize(struct window_manager *wm)
+void window_manager_toggle_window_border_randomize(struct window_manager *wm, struct window *window)
 {
     if (wm->enable_window_border) {
-        if (wm->enable_window_border_randomize) {
+        wm->enable_window_border_randomize = !wm->enable_window_border_randomize;
+
+        if (!wm->enable_window_border_randomize) {
             window_manager_reset_active_window_border_color(wm);
+            window_manager_check_active_window_border_config(wm, window);
         } else {
             window_manager_set_active_window_border_color_random(wm);
         }
+    }
+}
 
-        wm->enable_window_border_randomize = !wm->enable_window_border_randomize;
+void window_manager_toggle_window_border_show_state(struct window_manager *wm)
+{
+    if (wm->enable_window_border) {
+        wm->enable_window_border_show_state = !wm->enable_window_border_show_state;
+    }
+}
+
+void window_manager_toggle_window_border_tiled_only(struct window_manager *wm)
+{
+    if (wm->enable_window_border) {
+        wm->enable_window_border_tiled_only = !wm->enable_window_border_tiled_only;
+    }
+}
+
+void window_manager_toggle_window_border_float_only(struct window_manager *wm)
+{
+    if (wm->enable_window_border) {
+        wm->enable_window_border_float_only = !wm->enable_window_border_float_only;
     }
 }
 
@@ -1575,6 +1705,9 @@ void window_manager_init(struct window_manager *wm)
     wm->enable_mff = false;
     wm->enable_window_border = false;
     wm->enable_window_border_randomize = false;
+    wm->enable_window_border_show_state = false;
+    wm->enable_window_border_tiled_only = false;
+    wm->enable_window_border_float_only = false;
     wm->enable_window_opacity = false;
     wm->enable_window_topmost = false;
     wm->active_window_opacity = 1.0f;
@@ -1585,6 +1718,9 @@ void window_manager_init(struct window_manager *wm)
     wm->active_border_color = rgba_color_from_hex(0xff775759);
     wm->active_border_color_copy = rgba_color_from_hex(0xff775759);
     wm->normal_border_color = rgba_color_from_hex(0xff555555);
+    wm->float_border_color = rgba_color_from_hex(0xff597757);
+    wm->sticky_border_color = rgba_color_from_hex(0xff575977);
+    wm->zoom_border_color = rgba_color_from_hex(0xff737757);
     wm->border_width = 6;
 
     table_init(&wm->application, 150, hash_wm, compare_wm);

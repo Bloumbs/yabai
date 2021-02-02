@@ -14,12 +14,9 @@ extern void *g_workspace_context;
 static void window_did_receive_focus(struct window_manager *wm, struct mouse_state *ms, struct window *window)
 {
     window_manager_set_window_opacity(wm, window, wm->active_window_opacity);
-    border_activate(window);
 
     if (wm->focused_window_id != window->id) {
-        if (wm->enable_window_border_randomize) {
-            window_manager_set_active_window_border_color_random(&g_window_manager);
-        }
+        window_manager_check_active_window_border_config(&g_window_manager, window);
 
         if (ms->ffm_window_id != window->id) {
             window_manager_center_mouse(wm, window);
